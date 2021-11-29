@@ -1,9 +1,11 @@
 package com.shrinil.addressbook.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-public class UserAccessDetails {
+@AllArgsConstructor
+public class UserLinkDetails {
 
     private Integer user1;
 

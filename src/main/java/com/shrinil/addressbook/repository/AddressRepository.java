@@ -1,9 +1,9 @@
 package com.shrinil.addressbook.repository;
 
-import com.shrinil.addressbook.entity.UserAddress;
+import com.shrinil.addressbook.entity.Address;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserAddressRepository extends CrudRepository<UserAddress, Integer> {
+public interface AddressRepository extends CrudRepository<Address, Integer> {
 }

@@ -1,9 +1,11 @@
 package com.shrinil.addressbook.controller;
 
+import com.shrinil.addressbook.authenticator.VerifyPhoneDetails;
+import com.shrinil.addressbook.authenticator.VerifyUserDetails;
 import com.shrinil.addressbook.builder.UserBuilder;
 import com.shrinil.addressbook.manager.UserManager;
 import com.shrinil.addressbook.model.PhoneDetails;
-import com.shrinil.addressbook.model.User;
+import com.shrinil.addressbook.entity.User;
 import com.shrinil.addressbook.model.UserDetails;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -29,10 +33,12 @@ public class UserController {
 
     @PostMapping("/registerPhone")
     @ResponseBody
-    public ResponseEntity<Object> registerPhone(@NonNull @RequestBody PhoneDetails phoneDetails){
+    public ResponseEntity<Object> registerPhone(
+            @NonNull @RequestBody PhoneDetails phoneDetails){
         User user;
         String phoneNumber = phoneDetails.getPhoneNumber();
         try {
+            VerifyPhoneDetails.verify(phoneDetails);
             user = new UserBuilder().setPhoneNumber(phoneNumber).build();
             user = userManager.createUser(user);
         }
@@ -44,13 +50,19 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/registerDetails/{userId}")
+    @PostMapping("/{userId}/registerDetails")
     @ResponseBody
     public ResponseEntity<Object> registerUserDetails(
-            @PathVariable Integer userId, @RequestBody UserDetails userDetails){
+            @NonNull @PathVariable Integer userId,
+            @RequestParam("firstName") String firstName,
+            @RequestParam("lastName") String lastName,
+            @RequestParam("emailAddress") String emailAddress,
+            @RequestParam("displayPicture") MultipartFile multipartFile){
         User user;
         try {
-            user = userManager.updateUser(userId, userDetails);
+            UserDetails userDetails = new UserDetails(firstName, lastName, emailAddress);
+            VerifyUserDetails.verify(userDetails, multipartFile);
+            user = userManager.updateUserDetails(userId, userDetails, multipartFile);
         }
         catch (Exception e){
             Logger.getLogger("Exception while registering a user: " + e);
@@ -61,7 +73,8 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<Object> getUser(@PathVariable Integer userId){
+    public ResponseEntity<Object> getUser(
+            @NonNull @PathVariable Integer userId){
         User user;
         try {
             user = userManager.getUser(userId);
@@ -91,7 +104,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<String> deleteUser(@PathVariable Integer userId){
+    public ResponseEntity<String> deleteUser(
+            @NonNull @PathVariable Integer userId){
         try {
             userManager.deleteUser(userId);
         }
@@ -112,6 +126,20 @@ public class UserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
         return ResponseEntity.ok("Deleted all the users.");
+    }
+
+    @GetMapping("/{userId}/displayPicture")
+    public ResponseEntity<Object> getUserDisplayPicture(
+            @NonNull @PathVariable Integer userId){
+        Byte[] userDp;
+        try {
+            userDp = userManager.getUserDisplayPicture(userId);
+        }
+        catch (Exception e){
+            Logger.getLogger("Exception while getting a user: " + e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(userDp);
     }
 
 }

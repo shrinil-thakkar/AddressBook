@@ -1,5 +1,6 @@
-package com.shrinil.addressbook.model;
+package com.shrinil.addressbook.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,14 +8,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-@Table(name = "Users")
+@Table(name = "USER")
 @Getter
 @Setter
 @ToString
@@ -23,26 +22,43 @@ import javax.persistence.Table;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class User {
     @Id
-    @GeneratedValue
-    @Column(name = "user_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "USER_ID")
     private Integer userId;
 
-    @Column(name = "first_name")
+    @Column(name = "FIRST_NAME")
     private String firstName;
 
-    @Column(name = "last_name")
+    @Column(name = "LAST_NAME")
     private String lastName;
 
-    @Column(name = "phone_number", nullable = false, unique = true)
+    @Column(name = "PHONE_NUMBER", nullable = false, unique = true)
     private String phoneNumber;
 
-    @Column(name = "password")
-    private String password;
+    @Column(name = "EMAIL_ADDRESS")
+    private String emailAddress;
 
-    public User(String firstName, String lastName, String phoneNumber, String password) {
+    @Column(name = "DISPLAY_PICTURE_ID")
+    private Integer displayPictureId;
+
+    @ElementCollection
+    @JsonIgnore
+    @Column(name = "ADDRESS_LIST")
+    /* contains list of addresses owned by the user, the deleted addresses are removed from the list */
+    private Set<Integer> addressList;
+
+
+    //    @OneToMany(targetEntity = Address.class,
+    //            cascade = CascadeType.ALL,
+    //            fetch = FetchType.LAZY,
+    //            mappedBy = "user")
+    //    @ToString.Exclude
+    //    private Set<Address> addressList;
+
+    public User(String firstName, String lastName, String phoneNumber) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
-        this.password = password;
+        this.addressList = new HashSet<>();
     }
 }

@@ -1,8 +1,8 @@
 package com.shrinil.addressbook.controller;
 
 import com.shrinil.addressbook.entity.User;
-import com.shrinil.addressbook.manager.UserManager;
-import com.shrinil.addressbook.model.UserAccessDetails;
+import com.shrinil.addressbook.manager.UserLinkManager;
+import com.shrinil.addressbook.model.UserLinkDetails;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,36 +20,67 @@ import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("userLink")
-public class UserAccessController {
+public class UserLinkController {
 
     @Autowired
-    private UserManager userManager;
+    private UserLinkManager userLinkManager;
 
     @PostMapping("/check")
     @ResponseBody
-    public ResponseEntity<Object> checkUserLink(@NonNull @RequestBody UserAccessDetails userAccessDetails){
+    public ResponseEntity<Object> checkUserLink(@NonNull @RequestBody UserLinkDetails userLinkDetails){
         boolean linkExists;
         try {
-            linkExists = userManager.checkUserLink(userAccessDetails);
+            linkExists = userLinkManager.checkUserLink(userLinkDetails);
         }
         catch (Exception e){
             System.out.println("Exception while checking a user link: " + e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
         if(linkExists)
-            return ResponseEntity.ok("Link between the provided users exist.");
+            return ResponseEntity.ok("Linked.");
         else
-            return ResponseEntity.ok("No link between the provided users exist.");
+            return ResponseEntity.ok("Not linked.");
     }
 
-    @PostMapping("")
+    @PostMapping("/checkRequests")
     @ResponseBody
-    public ResponseEntity<Object> linkUsers(@NonNull @RequestBody UserAccessDetails userAccessDetails){
+    public ResponseEntity<Object> checkUserLinkRequest(@NonNull @RequestBody UserLinkDetails userLinkDetails){
+        boolean linkExists;
         try {
-            userManager.linkUsers(userAccessDetails);
+            linkExists = userLinkManager.checkUserLinkRequest(userLinkDetails);
         }
         catch (Exception e){
-            Logger.getLogger("Exception while linking users: " + e);
+            System.out.println("Exception while checking a user link request: " + e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        if(linkExists)
+            return ResponseEntity.ok("Request exists.");
+        else
+            return ResponseEntity.ok("No request exists.");
+    }
+
+    @PostMapping("/request")
+    @ResponseBody
+    public ResponseEntity<Object> requestLinkUsers(@NonNull @RequestBody UserLinkDetails userLinkDetails){
+        try {
+            userLinkManager.requestLinkUsers(userLinkDetails);
+        }
+        catch (Exception e){
+            System.out.println("Exception while linking users: " + e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+        return ResponseEntity.ok("Users linked successfully.");
+    }
+
+    @PostMapping("/approve")
+    @ResponseBody
+    public ResponseEntity<Object> approveLinkUsers(@NonNull @RequestBody UserLinkDetails userLinkDetails){
+        try {
+            userLinkManager.approveLinkUsers(userLinkDetails);
+        }
+        catch (Exception e){
+            System.out.println("Exception while linking users: " + e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
 
@@ -58,9 +89,9 @@ public class UserAccessController {
 
     @DeleteMapping("")
     @ResponseBody
-    public ResponseEntity<Object> unlinkUsers(@NonNull @RequestBody UserAccessDetails userAccessDetails){
+    public ResponseEntity<Object> unlinkUsers(@NonNull @RequestBody UserLinkDetails userAccessDetails){
         try {
-            userManager.unlinkUsers(userAccessDetails);
+            userLinkManager.unlinkUsers(userAccessDetails);
         }
         catch (Exception e){
             Logger.getLogger("Exception while unlinking users: " + e);
@@ -72,10 +103,10 @@ public class UserAccessController {
 
     @GetMapping("/{userId}")
     @ResponseBody
-    public ResponseEntity<Object> unlinkUsers(@NonNull @PathVariable Integer userId){
+    public ResponseEntity<Object> getLinkedUsersById(@NonNull @PathVariable Integer userId){
         List<User> userList;
         try {
-            userList = userManager.getUsersLinkedTo(userId);
+            userList = userLinkManager.getLinkedUsersById(userId);
         }
         catch (Exception e){
             Logger.getLogger("Exception while listing linked users: " + e);
@@ -83,5 +114,20 @@ public class UserAccessController {
         }
 
         return ResponseEntity.ok(userList);
+    }
+
+    @GetMapping("")
+    @ResponseBody
+    public ResponseEntity<Object> getAllUserLinks(){
+        List<UserLinkDetails> userLinkDetails;
+        try {
+            userLinkDetails = userLinkManager.getAllUserLinks();
+        }
+        catch (Exception e){
+            Logger.getLogger("Exception while listing all user links: " + e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+        return ResponseEntity.ok(userLinkDetails);
     }
 }
